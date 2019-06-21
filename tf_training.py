@@ -1,3 +1,13 @@
+# *************************************************************************** #
+#   ___  ____  __    ____  __   ____  __     __   ____    tf_training.py      #
+#  / __)(  __)(  )  (  __)/ _\ (  _ \(  )   / _\ (  _ \                       #
+# ( (_ \ ) _)  )(    ) _)/    \ ) _ (/ (_/\/    \ ) _ (   Created by yohan    #
+#  \___/(__)  (__)  (__) \_/\_/(____/\____/\_/\_/(____/   19/06/2019 11:34:42 #
+#                                                                             #
+#           Contact: yohan.thollet@gfi.fr                 Updated by yohan    #
+#                                                         21/06/2019 15:39:42 #
+# *************************************************************************** #
+
 from random import randint
 import random
 import numpy as np
@@ -20,35 +30,57 @@ def augmented_batch(batch):
 
     return n_batch
 
-def train_model(batch_size, sess, x, y, x_train, y_train, x_valid, y_valid,
-                dropout, accuracy_operation, training_operation):
+
+# On mélange les images sans perdre les targets (chat ou chien)
+# Pour éviter de retomber sur les meme images
+def shuffle_images(dataset):
+    indexs = np.arange(len(dataset.x_train))
+    np.random.shuffle(indexs)
+    dataset.x_train = dataset.x_train[indexs]
+    dataset.y_train = dataset.y_train[indexs]
+    return dataset
+
+
+def run_trainning(i, dtst, modl, t):
+    for b in range(0, len(dtst.x_train), t.btch_size):
+        batch = augmented_batch(dtst.x_train[b:b + t.btch_size])
+        # batch = X_train[b:b+batch_size]
+
+        if i % 20 == 0:
+            acc_train = t.sess.run(t.acc_ope,
+                                     feed_dict={
+                                         modl.dropout: 1.0,
+                                         modl.x: batch,
+                                         modl.y: dtst.y_train[b:b + t.btch_size]})
+            print("Accuracy [Train]:", acc_train)
+        t.sess.run(t.train_ope,
+                      feed_dict={
+                          modl.dropout: 0.8,
+                          modl.x: batch,
+                          modl.y: dtst.y_train[b:b + t.btch_size]})
+        i += 1
+
+
+def check_accuracy(dtst, modl, t):
+    accs = []
+    for b in range(0, len(dtst.x_valid), t.btch_size):
+        accs.append(t.sess.run(t.acc_ope,
+                                  feed_dict={
+                                      modl.dropout: 1.0,
+                                      modl.x: dtst.x_valid[b:b + t.btch_size],
+                                      modl.y: dtst.y_valid[b:b + t.btch_size]}))
+    print("Accuracy [Validation]", np.mean(accs))
+
+
+# dataset = [x_train, x_valid, y_train, y_valid]
+# model = [x, y, dropout, softmax, logits]
+# t = [batch_size, sess, accuracy_operation, training_operation]
+def train_model(dataset, model, t):
     i = 0
-    for epoch in range(0, 10000):
+    for epoch in range(0, 100):
         print(">> Epoch: %s" % epoch)
-        # Shuffle --> on mélange les images sans perdre la relation en x et y
-        indexs = np.arange(len(x_train))
-        np.random.shuffle(indexs)
-        X_train = x_train[indexs]
-        y_train = y_train[indexs]
+        dataset = shuffle_images(dataset)
 
-        for b in range(0, len(x_train), batch_size):
-            batch = augmented_batch (x_train[b:b + batch_size])
-            # batch = X_train[b:b+batch_size]
-
-            if i % 20 == 0:
-                # print(sess.run(predicted_cls, feed_dict={dropout: 1.0, x: batch, y: y_train[b:b+batch_size]}))
-                print("Accuracy [Train]:", sess.run(accuracy_operation,
-                                                    feed_dict={dropout: 1.0,
-                                                    x: batch, y: y_train[b:b + batch_size]}))
-            sess.run(training_operation, feed_dict={dropout: 0.8, x: batch,
-                                                    y: y_train[b:b + batch_size]})
-            i += 1
+        run_trainning(i, dataset, model, t)
         if epoch % 2 == 0:
-            accs = []
-            for b in range(0, len(x_valid), batch_size):
-                accs.append(sess.run(accuracy_operation, feed_dict={dropout: 1.,
-                                                                    x: x_valid[
-                                                                       b:b + batch_size],
-                                                                    y: y_valid[
-                                                                       b:b + batch_size]}))
-            print("Accuracy [Validation]", np.mean(accs))
+            check_accuracy(dataset, model, t)
