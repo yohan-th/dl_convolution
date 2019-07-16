@@ -25,16 +25,16 @@ def extract_dataset():
     targets = []
     features = []
 
-    files_cat = glob.glob('train/cat/*.jpg')
+    files = glob.glob('datasets/flowers/rose/*.jpg')
 
-    for file in files_cat:
+    for file in files:
         features.append(np.array(Image.open(file).resize((75, 75))))
         target = [1, 0]
         targets.append(target)
 
-    files_cat = glob.glob('train/dog/*.jpg')
+    files = glob.glob('datasets/cat&dog/cat/*.jpg')
 
-    for file in files_cat:
+    for file in files:
         features.append(np.array(Image.open(file).resize((75, 75))))
         target = [0, 1]
         targets.append(target)

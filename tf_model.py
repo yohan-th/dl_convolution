@@ -45,7 +45,7 @@ def create_conv(prev, filter_size, nb):
                         padding='SAME') + conv_b
     # Activation: relu --> fonction d'activation choisi arbitrairement
     conv = tf.nn.relu(conv)
-    # Pooling --> on reduit la taille par 2 du filtre
+    # Pooling --> on reduit la taille par 2px du filtre
     conv = tf.nn.max_pool(conv, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
                           padding='SAME')
     return conv
@@ -59,6 +59,7 @@ def create_model():
     x = tf.placeholder(tf.float32, (None, 75, 75, 3),
                        name="x")  # 75=pixel et 3=RBV
     y = tf.placeholder(tf.float32, (None, 2), name="y")
+    #désactiver des sorties des neuronnnes pour un meilleure apprentissage
     dropout = tf.placeholder(tf.float32, None, name="dropout")
 
     conv = create_conv(x, 8, 32)  # 32 filtres de taille 8x8px, x=layer prec

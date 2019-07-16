@@ -21,8 +21,8 @@ features, targets = extract_dataset()
 
 # train_test_split permet de split la dataset en 2 pour avoir une partie train
 # et un autre pour valider
-# 10% de la dataset est dédié a la validation et 90% à l'entrainement
-x_train, x_valid, y_train, y_valid = train_test_split(features, targets, test_size=0.1)
+# 20% de la dataset est dédié a la validation et 80% à l'entrainement
+x_train, x_valid, y_train, y_valid = train_test_split(features, targets, test_size=0.2)
 dtst = c_dataset(x_train, x_valid, y_train, y_valid)
 
 print("X_train.shape", dtst.x_train.shape)
@@ -39,7 +39,8 @@ accuracy_operation = tf_accuracy(modl.y, modl.softmax)
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
-# lot de 100 image qu'on envoi dans le graphe tenserflow
-train = c_train(100, sess, accuracy_operation, training_operation)
+# lot de 200 image qu'on envoi dans le graphe tenserflow
+batch_size = 200
+train = c_train(batch_size, sess, accuracy_operation, training_operation)
 
 train_model(dtst, modl, train)

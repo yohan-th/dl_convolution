@@ -55,7 +55,7 @@ def run_trainning(i, dtst, modl, t):
             print("Accuracy [Train]:", acc_train)
         t.sess.run(t.train_ope,
                       feed_dict={
-                          modl.dropout: 0.8,
+                          modl.dropout: 0.8, #acceleration apprentissage
                           modl.x: batch,
                           modl.y: dtst.y_train[b:b + t.btch_size]})
         i += 1
